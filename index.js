@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
 	_id: String
 });
 
-let users = mongoose.model('users', userSchema);
+let User = mongoose.model('User', userSchema);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -27,12 +27,16 @@ app.post('/api/users', async (req, res) => {
 	let username = req.body.username;
 	let userid = crypto.createHash('sha256').update(username + Date.now().toString()).digest('hex').slice(0, 16);
 	
-	let user = await users.create({username: username, _id: userid});
+	let user = await User.create({username: username, _id: userid});
 	
 	res.json({username: username, _id: user._id})
 });
 
+app.get('/api/users', async (req, res) => {
+	const users = await User.find();
 
+	res.json(users);
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
