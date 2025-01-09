@@ -87,7 +87,22 @@ app.get('/api/users/:_id/logs', async (req, res) => {
 		return res.json({error: "Invalid user"})
 	}
 
-	let log = await Exercise.find({userid: user._id}, {description: 1, duration: 1, date: 1, _id: 0}).lean();
+	const {from, to, limit} = req.query;
+	let query = {userid: user._id};
+	if (from) {
+		query.date = {... query.date, $gte: new Date(from) };
+	}
+	if (to) {
+		query.date = { ... query.date, $lte: new Date(to) };
+	}
+
+	query = Exercise.find(query);
+
+	if (limit) {
+		query = query.limit(parseInt(limit));
+	}
+
+	let log = await query.lean();
 	let count = log.length;
 	
 	log = log.map(exo => ({
