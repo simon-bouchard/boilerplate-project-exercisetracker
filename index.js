@@ -81,6 +81,24 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 	res.json({_id: userid, username: username, date: exercise.date.toDateString(), duration:exercise.duration, description: exercise.description});
 });
 
+app.get('/api/users/:_id/logs', async (req, res) => {
+	let user = await User.findOne({_id: req.params._id});
+	if (!user) {
+		return res.json({error: "Invalid user"})
+	}
+
+	let log = await Exercise.find({userid: user._id}, {description: 1, duration: 1, date: 1, _id: 0}).lean();
+	let count = log.length;
+	
+	log = log.map(exo => ({
+		description: exo.description,
+		duration: exo.duration,
+		date: new Date(exo.date).toDateString()
+		}));
+
+	res.json({username: user.username, count: count, _id: user._id, log: log});
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 })
